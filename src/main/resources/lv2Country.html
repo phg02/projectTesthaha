@@ -40,18 +40,18 @@
         <div class="container">
             <div class="box box__1">
                 <div class="boxinfo">
-                    <h1>Country View</h1>
+                    <h1><span th:text="${country}"></span></h1>
                     <br>
                 </div>
                 <form class="custommenu" action='/country.html' method='post'>
                     <div class="country">
-                        <select id="startYear" name="startYear">
+                        <select id="country" name="country">
                             <option disabled selected>Country</option> 
                             <option th:each="country : ${countryselection}" th:text="${country}"></option>
                         </select>
                     </div>
-                    <div class="startyear">
-                        <select>
+                    <div class="startYear">
+                        <select id="startYear" name="startYear">
                             <option disabled selected>Start year</option> 
                             <option th:each="year:${yearselection}" th:text="${year}"></option>
                         </select>
@@ -76,12 +76,12 @@
                         <th>Minimum temperature</th>
                         <th>Maximum temperature</th>
                     </tr>
-                    <tr>
-                        <td>1960</td>
-                        <td>3,019,233,434</td>
-                        <td>8.584°C</td>
-                        <td>8.584°C</td>
-                        <td>8.584°C</td>
+                    <tr th:each="hehe : ${answer}">
+                        <td th:text="${hehe.year}"></td>
+                        <td th:text="${hehe.population}"></td>
+                        <td><span th:text="${hehe.AVGtemp}"></span>&#176;C</td>
+                        <td><span th:text="${hehe.Mintemp}"></span>&#176;C</td>
+                        <td><span th:text="${hehe.Maxtemp}"></span>&#176;C</td>
                     </tr>
                 </table>
             </div>
@@ -93,7 +93,7 @@
             </div>
             <div class="box box__3">
                 <h1>Ranking</h1>
-                <form>
+                <form action="/country.html" method="post">
                 <div class="selectContainer">
                     <select class="sortby">
                         <option value="">Ascending</option>
@@ -126,10 +126,10 @@
             </div>
             <div class="box box__5">
                 <div class="year">
-                    <h1>1960</h1>
+                    <h1>Start year: <span th:each="huhu :${answer1}" th:text="${huhu.year}"></span></h1>
                 </div>
                 <div class="population">
-                    <h1>3,019,233,434</h1>
+                    <h1 th:each="huhu :${answer1}" th:text="${huhu.population}"></h1>
                 </div>
                 <div class="popunit">
                     <h5>people</h5>
@@ -138,27 +138,27 @@
                     <h5>Average temperature</h5>
                 </div>
                 <div class="temp">
-                    <h1>8.584&#176;C</h1>   
+                    <h1><span th:each="huhu :${answer1}" th:text="${huhu.AVGtemp}"></span>&#176;C</h1>   
                 </div>
                 <div class="tempunit">
                     <h5>Minimum temperature</h5>
                 </div>
                 <div class="temp">
-                    <h1>8.584&#176;C</h1>   
+                    <h1><span th:each="huhu :${answer1}" th:text="${huhu.Mintemp}"></span>&#176;C</h1>   
                 </div>
                 <div class="tempunit">
                     <h5>Maximum temperature</h5>
                 </div>
                 <div class="temp">
-                    <h1>8.584&#176;C</h1>   
+                    <h1><span th:each="huhu :${answer1}" th:text="${huhu.Maxtemp}"></span>&#176;C</h1>   
                 </div>
             </div>
             <div class="box box__6">
                 <div class="year">
-                    <h1>2013</h1>
+                    <h1>End year: <span th:each="hoho :${answer2}" th:text="${hoho.year}"></span></h1>
                 </div>
                 <div class="population">
-                    <h1>7,250,593,370</h1>
+                    <h1 th:each="hoho :${answer2}" th:text="${hoho.population}"></h1>
                 </div>
                 <div class="popunit">
                     <h5>people</h5>
@@ -167,33 +167,33 @@
                     <h5>Average temperature</h5>
                 </div>
                 <div class="temp">
-                    <h1>9.607&#176;C</h1>   
+                    <h1><span th:each="hoho :${answer2}" th:text="${hoho.AVGtemp}"></span>&#176;C</h1>   
                 </div>
                 <div class="tempunit">
                     <h5>Minimum temperature</h5>
                 </div>
                 <div class="temp">
-                    <h1>8.584&#176;C</h1>   
+                    <h1><span th:each="hoho :${answer2}" th:text="${hoho.Mintemp}"></span>&#176;C</h1>   
                 </div>
                 <div class="tempunit">
                     <h5>Maximum temperature</h5>
                 </div>
                 <div class="temp">
-                    <h1>8.584&#176;C</h1>
+                    <h1><span th:each="hoho :${answer2}" th:text="${hoho.Maxtemp}"></span>&#176;C</h1>
                 </div>
             </div>
             <div class="box box__7">
                 <h3>Population change:</h3>
-                <h1>+140%</h1>
+                <h1><span th:text="${percentPop}"></span>%</h1>
                 <br>
                 <h3>Temperature change:</h3>
-                <h1>+11.92%</h1>
+                <h1><span th:text="${percentTemp}"></span>%</h1>
                 <br>
                 <h3>Min temperature change:</h3>
-                <h1>+140%</h1>
+                <h1><span th:text="${percentMinTemp}"></span>%</h1>
                 <br>
                 <h3>Max temperature change:</h3>
-                <h1>+11.92%</h1>
+                <h1><span th:text="${percentMaxTemp}"></span>%</h1>
             </div>
         </div>
     </div>

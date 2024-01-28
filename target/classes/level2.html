@@ -40,17 +40,18 @@
         <div class="container">
             <div class="box box__1">
                 <div class="boxinfo">
-                    <h1>World View</h1>
+                    <h1 th:text="${title}"></h1>
+                    <br>
                 </div>
                 <form class="custommenu" action="/world.html" method="post">
                     <div class="startyear">
-                        <select class="clect" id="startyear" name="startyear">
+                        <select class="clect" id="startyear" name="startyear" required>
                             <option disabled selected>Start year</option> 
                             <option th:each="year:${yearselection}" th:text="${year}"></option>
                         </select>
                     </div>
                     <div class="endyear">
-                        <select class="clect" id="endyear" name="endyear">
+                        <select class="clect" id="endyear" name="endyear" required>
                             <option disabled selected>End year</option>
                             <option th:each="year:${yearselection}" th:text="${year}"></option>
                         </select>
@@ -70,14 +71,14 @@
                             <th>Maximum temperature</th>
                         </tr>
                         <div class="result">
-                        <tr th:each="data : ${answer}">
-                            <td th:text="${data.year}"></td>
-                            <td th:text="${data.population}"></td>
-                            <td th:text="${data.AVGtemp}"></td>
-                            <td th:text="${data.Mintemp}"></td>
-                            <td th:text="${data.Maxtemp}"></td>
-                        </tr>
-                        <result class="result">
+                            <tr th:each="data : ${answer}">
+                                <td th:text="${data.year}"></td>
+                                <td th:text="${data.population}"></td>
+                                <td ><span th:text="${data.AVGtemp}"></span>&#176;C</td>
+                                <td ><span th:text="${data.Mintemp}"></span>&#176;C</td>
+                                <td ><span th:text="${data.Maxtemp}"></span>&#176;C</td>
+                            </tr>
+                        </div>
                     </table>
                 </div>
             </div>
@@ -88,7 +89,7 @@
                 <a href="citystate.html"><button class="option">State/City View</button></a>
             </div>
             <div class="box box__3">
-                <h1>Ranking</h1>
+                <h1>Ranking average temp</h1>
                 <form>
                     <select class="sortby">
                         <option value="">Ascending</option>
@@ -98,14 +99,8 @@
                 </form>
                 <div class="ranking">
                     <ol>
-                        <li>Country 1</li>
-                        <li>Country 2</li>
-                        <li>Country 3</li>
-                        <li>Country 4</li>
-                        <li>Country 5</li>
-                        <li>Country 6</li>
-                        <li>Country 7</li>
-                        <li>Country 8</li>
+                        <li th:each="hehe :${answer6}"><span th:text="${hehe.year}"></span>   <span>Average: <span th:text="${hehe.AVGtemp}"></span>&#176;C</li>
+                        
                     </ol>
                 </div>
             </div>
@@ -145,10 +140,10 @@
             </div>
             <div class="box box__7">
                 <h3>Population change:</h3>
-                <h1>+140%</h1>
+                <h1><span th:text="${answer5}"></span>%</h1>
                 <br>
                 <h3>Temperature change:</h3>
-                <h1>+11.92%</h1>
+                <h1><span th:text="${answer4}"></span>%</h1>
             </div>
         </div>
     </div>

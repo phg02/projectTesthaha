@@ -213,10 +213,11 @@ select {
     
     text-align: center;
 }
-.result{
-    display: block;
-    overflow-y: auto;
-}
+/*.result{
+    height: 500px;
+    overflow-y: scroll;
+    align-self: start;
+}*/
 
 .box__2 {
     grid-column: 3/4;

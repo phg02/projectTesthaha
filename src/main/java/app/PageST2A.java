@@ -6,6 +6,9 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.sqlite.JDBC;
+
 import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -35,6 +38,7 @@ public class PageST2A implements Handler {
         // Create a simple HTML webpage in a String
         Map<String, Object> model = new HashMap<String, Object>();
 
+        // Get year selection
         JDBCConnection jdbc = new JDBCConnection();
         ArrayList<Integer> yearselection = new ArrayList<Integer>();
         ArrayList<info> infos = jdbc.getallYear();
@@ -44,30 +48,61 @@ public class PageST2A implements Handler {
         }
         model.put("yearselection", yearselection);
 
+        // get year from form
         String startYear = context.formParam("startyear");
         String endYear = context.formParam("endyear");
 
-        /*
-         * if (Integer.valueOf(startYear) < Integer.valueOf(endYear)) {
-         * model.put("answer", "The start year must be less than the end year");
-         * } else if (startYear == null || endYear == null) {
-         * model.put("answer", "Please select a year");
-         * } else {
-         */
+        if (startYear == null || endYear == null || startYear.isEmpty() || endYear.isEmpty()) {
+            model.put("title", new String("World View"));
+        } else if (Integer.valueOf(startYear) > Integer.valueOf(endYear)) {
+            model.put("title", new String("Error: The start year must be smaller than the end year!"));
+        } else {
+            model.put("title", new String("World View"));
+        }
+
+        // get data from database
         JDBCConnection jdbc1 = new JDBCConnection();
         ArrayList<info> result = jdbc1.lvl2query(startYear, endYear);
         model.put("answer", result);
 
         // }
+        // get start year info
         JDBCConnection jdbc2 = new JDBCConnection();
         ArrayList<info> result2 = jdbc2.lv2queryYearReader(startYear);
 
         model.put("answer2", result2);
 
+        // get end year info
         JDBCConnection jdbc3 = new JDBCConnection();
         ArrayList<info> result3 = jdbc3.lv2queryYearReader(endYear);
 
         model.put("answer3", result3);
+
+        // get percentage change of AVG temp compare between start year and end year
+        JDBCConnection jdbc4 = new JDBCConnection();
+        double result4 = jdbc4.getPercentageTempChange(startYear, endYear);
+        model.put("answer4", result4);
+
+        // get percentage change of population compare between start year and end year
+        if (startYear == null || endYear == null) {
+            model.put("answer5", new String("0.0"));
+        } else {
+            JDBCConnection jdbc5 = new JDBCConnection();
+            double result5 = jdbc5.getPopNum(startYear);
+
+            JDBCConnection jdbc6 = new JDBCConnection();
+            double result6 = jdbc6.getPopNum(endYear);
+
+            double percentage = ((result6 - result5) / result5) * 100;
+
+            model.put("answer5", percentage);
+        }
+
+        // get ranking for AVG temp
+        JDBCConnection jdbc7 = new JDBCConnection();
+        ArrayList<info> result7 = jdbc7.rankingYearAsc(startYear, endYear);
+        model.put("answer6", result7);
+
         // DO NOT MODIFY THIS
         // Makes Javalin render the webpage
         context.render(TEMPLATE, model);

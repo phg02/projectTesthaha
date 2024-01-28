@@ -30,25 +30,77 @@ public class PageST2B implements Handler {
 
     @Override
     public void handle(Context context) throws Exception {
-
+        // Create a hash map to hold the data we want to pass to our template
         Map<String, Object> model = new HashMap<String, Object>();
+
+        // add year selection
         JDBCConnection jdbc = new JDBCConnection();
         ArrayList<Integer> yearselection = new ArrayList<Integer>();
         ArrayList<info> infos = jdbc.getallYear();
-
         for (info time : infos) {
             yearselection.add(time.year);
         }
         model.put("yearselection", yearselection);
 
+        // add country selection
         JDBCConnection jdbc1 = new JDBCConnection();
         ArrayList<String> countryselection = new ArrayList<String>();
         ArrayList<info> infos1 = jdbc1.getallCountry();
-
         for (info time1 : infos1) {
             countryselection.add(time1.country);
         }
         model.put("countryselection", countryselection);
+
+        // read value from form
+        String startYear = context.formParam("startYear");
+        String endYear = context.formParam("endYear");
+        String country = context.formParam("country");
+
+        // return country name
+        if (country == null) {
+            model.put("country", new String("Country View"));
+        } else if (Integer.parseInt(startYear) > Integer.parseInt(endYear)) {
+            model.put("country", new String("Error: Start year must be less than end year"));
+        } else {
+            model.put("country", new String("Viewing " + country));
+        }
+
+        // return info for country
+        JDBCConnection jbdc2 = new JDBCConnection();
+        ArrayList<info> infos2 = jbdc2.lvl2Bquery(startYear, endYear, country);
+        model.put("answer", infos2);
+
+        JDBCConnection jbdc3 = new JDBCConnection();
+        ArrayList<info> infos3 = jbdc3.readCountryInfo(startYear, country);
+        model.put("answer1", infos3);
+
+        JDBCConnection jbdc4 = new JDBCConnection();
+        ArrayList<info> infos4 = jbdc4.readCountryInfo(endYear, country);
+        model.put("answer2", infos4);
+
+        JDBCConnection jbdc5 = new JDBCConnection();
+        double percentTemp = jbdc5.percentTempChange(startYear, endYear, country);
+        model.put("percentTemp", percentTemp);
+
+        if (country == null) {
+            model.put("percentPop", new String("0.0"));
+        } else {
+            JDBCConnection jbdc6 = new JDBCConnection();
+            double results6 = jbdc6.getPopulation(startYear, country);
+            JDBCConnection jbdc7 = new JDBCConnection();
+            double results7 = jbdc7.getPopulation(endYear, country);
+            double percentPop = ((results7 - results6) / results6) * 100;
+            System.out.println(percentPop);
+            model.put("percentPop", percentPop);
+
+        }
+        JDBCConnection jbdc8 = new JDBCConnection();
+        double percentMinTempChange = jbdc8.percentMinTempChange(startYear, endYear, country);
+        model.put("percentMinTemp", percentMinTempChange);
+
+        JDBCConnection jbdc9 = new JDBCConnection();
+        double percentMaxTempChange = jbdc9.percentMaxTempChange(startYear, endYear, country);
+        model.put("percentMaxTemp", percentMaxTempChange);
 
         context.render(TEMPLATE, model);
 

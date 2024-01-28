@@ -322,7 +322,7 @@ public class JDBCConnection {
             Statement statement = connection.createStatement();
             statement.setQueryTimeout(30);
 
-            String query = "SELECT country_name FROM Country;";
+            String query = "SELECT country_name FROM Country WHERE country_name <> 'World' ORDER BY country_name;";
 
             ResultSet results = statement.executeQuery(query);
 
@@ -467,5 +467,483 @@ public class JDBCConnection {
 
     }
 
-    // TODO: Add your required methods here
+    public double getPercentageTempChange(String start, String end) {
+        Connection connection = null;
+        double percentage = 0;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT (wt2.AVG_temp-wt1.AVG_temp)/wt1.AVG_temp * 100 AS Percent FROM (WorldTemperature wt1 JOIN Country c1 ON c1.country_code = wt1.country_code) "
+                    +
+                    "JOIN (WorldTemperature wt2 JOIN Country c2 ON c2.country_code = wt2.country_code) " +
+                    "WHERE wt1.year = " + start + " AND wt2.year = " + end + " AND c1.country_name = c2.country_name;";
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            percentage = results.getDouble("Percent");
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return percentage;
+    }
+
+    public ArrayList<info> rankingYearAsc(String startyear, String endyear) {
+        ArrayList<info> rankinglist = new ArrayList<info>();
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT c.country_name, AVG_temp, year FROM WorldTemperature wt JOIN Country c ON c.country_code = wt.country_code WHERE year >= "
+                    + startyear + " AND year <= " + endyear + " ORDER BY AVG_temp ASC;";
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            while (results.next()) {
+                info info = new info();
+                info.year = results.getInt("year");
+                info.AVGtemp = results.getDouble("AVG_temp");
+                rankinglist.add(info);
+            }
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return rankinglist;
+    }
+
+    public long getPopNum(String year) {
+        Connection connection = null;
+        long pop = 0;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT DISTINCT pop_num FROM Population p WHERE p.country_code='WLD' AND p.year= " + year;
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            pop = results.getLong("pop_num");
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return pop;
+    }
+
+    public ArrayList<info> lvl2Bquery(String one, String two, String three) {
+        ArrayList<info> lvl2Blist = new ArrayList<info>();
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT CT.year,  c.country_name, CASE WHEN CT.year >= 1960 THEN P.POP_NUM ELSE NULL END AS pop_num, AVG_temp, MIN_temp, MAX_temp FROM CountryTemperature CT JOIN Country C ON CT.country_code = C.country_code LEFT JOIN Population P ON CT.country_code = P.country_code AND CT.year = P.year  WHERE CT.year >= "
+                    + one + " AND CT.year <= " + two + " AND c.country_name like '%" + three
+                    + "%' GROUP BY CT.year, P.POP_NUM";
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            while (results.next()) {
+                info info = new info();
+                info.year = results.getInt("year");
+                info.country = results.getString("country_name");
+                info.population = results.getLong("pop_num");
+                info.AVGtemp = results.getDouble("AVG_temp");
+                info.Mintemp = results.getDouble("MIN_temp");
+                info.Maxtemp = results.getDouble("MAX_TEMP");
+                lvl2Blist.add(info);
+            }
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return lvl2Blist;
+
+    }
+
+    public ArrayList<info> readCountryInfo(String one, String two) {
+        ArrayList<info> infos = new ArrayList<info>();
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT CT.year,  c.country_name, CASE WHEN CT.year >= 1960 THEN P.POP_NUM ELSE NULL END AS pop_num, AVG_temp, MIN_temp, MAX_temp FROM CountryTemperature CT JOIN Country C ON CT.country_code = C.country_code LEFT JOIN Population P ON CT.country_code = P.country_code AND CT.year = P.year  WHERE CT.year = "
+                    + one + " AND c.country_name like '%" + two
+                    + "%' GROUP BY CT.year, P.POP_NUM";
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+
+            info info = new info();
+            info.year = results.getInt("year");
+            info.population = results.getLong("pop_num");
+            info.AVGtemp = results.getDouble("AVG_temp");
+            info.Mintemp = results.getDouble("MIN_temp");
+            info.Maxtemp = results.getDouble("MAX_TEMP");
+            infos.add(info);
+
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return infos;
+
+    }
+
+    public double percentPop(String one, String two, String three) {
+        Connection connection = null;
+        double percentage = 0;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT (p2.pop_num-p1.pop_num)/p1.pop_num * 100 AS Percent FROM (Population p1 JOIN Country c1 ON c1.country_code = p1.country_code) "
+                    +
+                    "JOIN (Population p2 JOIN Country c2 ON c2.country_code = p2.country_code) " +
+                    "WHERE p1.year = " + one + " AND p2.year = " + two + " AND c1.country_name = c2.country_name;";
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            percentage = results.getDouble("Percent");
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return percentage;
+    }
+
+    public double percentTempChange(String one, String two, String country) {
+        Connection connection = null;
+        double percentage = 0;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT (wt2.AVG_temp-wt1.AVG_temp)/wt1.AVG_temp *100 AS Percent FROM (CountryTemperature wt1 JOIN Country c1 ON c1.country_code = wt1.country_code) \n"
+                    + //
+                    "JOIN (CountryTemperature wt2 JOIN Country c2 ON c2.country_code = wt2.country_code) \n" + //
+                    "WHERE wt1.year = " + one + " AND wt2.year = " + two
+                    + " AND c1.country_name = c2.country_name AND c1.country_name = '" + country + "';";
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            percentage = results.getDouble("Percent");
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return percentage;
+    }
+
+    public long getPopulation(String year, String country) {
+        Connection connection = null;
+        long population = 0;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT DISTINCT pop_num FROM Population p JOIN Country c ON p.country_code = c.country_code WHERE c.country_name = '"
+                    + country + "' and p.year = " + year;
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            population = results.getLong("pop_num");
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return population;
+    }
+
+    public double percentMinTempChange(String start, String end, String country) {
+        Connection connection = null;
+        double percentage = 0;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT (ct2.MIN_temp - ct1.MIN_temp) / ct1.MIN_temp * 100 AS Percent FROM (CountryTemperature ct1 JOIN Country c1 ON ct1.country_code = c1.country_code) \n"
+                    + "JOIN (CountryTemperature ct2 JOIN Country c2 ON ct2.country_code = c2.country_code) \n"
+                    + "WHERE ct1.year = " + start + " and ct2.year = " + end
+                    + " AND c1.country_name = c2.country_name AND c1.country_name = '" + country + "';";
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            percentage = results.getDouble("Percent");
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return percentage;
+    }
+
+    public double percentMaxTempChange(String start, String end, String country) {
+        Connection connection = null;
+        double percentage = 0;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT (ct2.MAX_temp - ct1.MAX_temp) / ct1.MAX_temp * 100 AS Percent FROM (CountryTemperature ct1 JOIN Country c1 ON ct1.country_code = c1.country_code) \n"
+                    + "JOIN (CountryTemperature ct2 JOIN Country c2 ON ct2.country_code = c2.country_code) \n"
+                    + "WHERE ct1.year = " + start + " and ct2.year = " + end
+                    + " AND c1.country_name = c2.country_name AND c1.country_name = '" + country + "';";
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            percentage = results.getDouble("Percent");
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return percentage;
+
+    }
+
+    // read state info
+    public ArrayList<info> readStateInfo(String one, String two, String three, String foru) {
+        ArrayList<info> infos = new ArrayList<info>();
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT ST.year, ST.state_name, ST.AVG_temp, ST.MIN_temp, ST.MAX_temp FROM COUNTRY C JOIN StateTemperature ST ON (C.COUNTRY_CODE = ST.COUNTRY_CODE) "
+                    +
+                    "WHERE  ST.year >=" + one + " AND ST.year <=" + two + " AND C.COUNTRY_NAME LIKE '%" + three
+                    + "%' AND ST.STATE_NAME LIKE '%" + foru + "%';";
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            while (results.next()) {
+                info info = new info();
+                info.year = results.getInt("year");
+                info.stateName = results.getString("state_name");
+                info.AVGtemp = results.getDouble("AVG_temp");
+                info.Mintemp = results.getDouble("MIN_temp");
+                info.Maxtemp = results.getDouble("MAX_temp");
+                infos.add(info);
+            }
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return infos;
+
+    }
+    //Read city info
+    public ArrayList<info> readCityInfo(String one, String two, String three, String four) {
+        ArrayList<info> infos = new ArrayList<info>();
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT CT.year, CT.city_name, CT.AVG_temp, CT.MIN_temp, CT.MAX_temp" +
+                    " FROM COUNTRY C JOIN CityTemperature CT ON (C.COUNTRY_CODE = CT.COUNTRY_CODE)" +
+                    " WHERE  CT.year >= " + one + " AND CT.year <= " + two + " AND C.COUNTRY_NAME LIKE '%" + three
+                    + "%'  AND CT.CITY_NAME LIKE '%" + four + "%';";
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            while (results.next()) {
+                info info = new info();
+                info.year = results.getInt("year");
+                info.stateName = results.getString("city_name");
+                info.AVGtemp = results.getDouble("AVG_temp");
+                info.Mintemp = results.getDouble("MIN_temp");
+                info.Maxtemp = results.getDouble("MAX_temp");
+                infos.add(info);
+            }
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return infos;
+
+    }
+
+    public ArrayList<info> cityReader(String one, String two, String three) {
+        ArrayList<info> cityData = new ArrayList<info>();
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT CT.year, CT.city_name, CT.AVG_temp, CT.MIN_temp, CT.MAX_temp \n" +
+            " FROM COUNTRY C JOIN CityTemperature CT ON (C.COUNTRY_CODE = CT.COUNTRY_CODE) \n" +
+            " WHERE  CT.year = " + one + " AND C.COUNTRY_NAME LIKE '%" + two + "%' AND CT.CITY_NAME LIKE '%" + three + "%'"; 
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            while (results.next()) {
+                info info = new info();
+                info.year = results.getInt("year");
+                info.AVGtemp = results.getDouble("AVG_temp");
+                info.Mintemp = results.getDouble("MIN_temp");
+                info.Maxtemp = results.getDouble("MAX_TEMP");
+                cityData.add(info);
+            }
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return cityData;
+
+    }
+
+    public ArrayList<info> stateReader(String one, String two, String three) {
+        ArrayList<info> stateData = new ArrayList<info>();
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+
+            String query = "SELECT S.year, S.state_name, S.AVG_temp, S.MIN_temp, S.MAX_temp \n" +
+            " FROM COUNTRY C JOIN StateTemperature S ON (C.COUNTRY_CODE = S.COUNTRY_CODE) \n" +
+            " WHERE  S.year = " + one + " AND C.COUNTRY_NAME LIKE '%" + two + "%' AND S.STATE_NAME LIKE '%" + three + "%'"; 
+
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            while (results.next()) {
+                info info = new info();
+                info.year = results.getInt("year");
+                info.AVGtemp = results.getDouble("AVG_temp");
+                info.Mintemp = results.getDouble("MIN_temp");
+                info.Maxtemp = results.getDouble("MAX_TEMP");
+                stateData.add(info);
+            }
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return stateData;
+
+    }
 }
+// TODO: Add your required methods here
