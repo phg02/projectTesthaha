@@ -93,6 +93,11 @@ public class statecity implements Handler {
             JDBCConnection jbdc7 = new JDBCConnection();
             ArrayList<info> stateData2 = jbdc7.stateReader(endYear, country, state);
             model.put("endYearInfo", stateData2);
+
+            JDBCConnection jbdc8 = new JDBCConnection();
+            double percentageAVG = jbdc8.getAVGchangeState(startYear, endYear, country, state);
+            model.put("percentageAVG", percentageAVG);
+
         } else {
             System.out.println("Error huhu.");
         }

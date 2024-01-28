@@ -830,7 +830,8 @@ public class JDBCConnection {
         return infos;
 
     }
-    //Read city info
+
+    // Read city info
     public ArrayList<info> readCityInfo(String one, String two, String three, String four) {
         ArrayList<info> infos = new ArrayList<info>();
         Connection connection = null;
@@ -879,8 +880,9 @@ public class JDBCConnection {
             statement.setQueryTimeout(30);
 
             String query = "SELECT CT.year, CT.city_name, CT.AVG_temp, CT.MIN_temp, CT.MAX_temp \n" +
-            " FROM COUNTRY C JOIN CityTemperature CT ON (C.COUNTRY_CODE = CT.COUNTRY_CODE) \n" +
-            " WHERE  CT.year = " + one + " AND C.COUNTRY_NAME LIKE '%" + two + "%' AND CT.CITY_NAME LIKE '%" + three + "%'"; 
+                    " FROM COUNTRY C JOIN CityTemperature CT ON (C.COUNTRY_CODE = CT.COUNTRY_CODE) \n" +
+                    " WHERE  CT.year = " + one + " AND C.COUNTRY_NAME LIKE '%" + two + "%' AND CT.CITY_NAME LIKE '%"
+                    + three + "%'";
 
             System.out.println(query);
             ResultSet results = statement.executeQuery(query);
@@ -917,8 +919,9 @@ public class JDBCConnection {
             statement.setQueryTimeout(30);
 
             String query = "SELECT S.year, S.state_name, S.AVG_temp, S.MIN_temp, S.MAX_temp \n" +
-            " FROM COUNTRY C JOIN StateTemperature S ON (C.COUNTRY_CODE = S.COUNTRY_CODE) \n" +
-            " WHERE  S.year = " + one + " AND C.COUNTRY_NAME LIKE '%" + two + "%' AND S.STATE_NAME LIKE '%" + three + "%'"; 
+                    " FROM COUNTRY C JOIN StateTemperature S ON (C.COUNTRY_CODE = S.COUNTRY_CODE) \n" +
+                    " WHERE  S.year = " + one + " AND C.COUNTRY_NAME LIKE '%" + two + "%' AND S.STATE_NAME LIKE '%"
+                    + three + "%'";
 
             System.out.println(query);
             ResultSet results = statement.executeQuery(query);
@@ -944,6 +947,36 @@ public class JDBCConnection {
         }
         return stateData;
 
+    }
+
+    public double getAVGchangeState(String start, String end, String country, String state) {
+        Connection connection = null;
+        double percentage = 0;
+        try {
+            connection = DriverManager.getConnection(DATABASE);
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(30);
+            String query = "SELECT (st2.AVG_temp-st1.AVG_temp)/st1.AVG_temp * 100 AS Percent FROM (StateTemperature st1 JOIN Country c1 ON c1.country_code = st1.country_code) \n"
+                    + "JOIN (StateTemperature st2 JOIN Country c2 ON c2.country_code = st2.country_code) \n"
+                    + "WHERE st1.year = " + start + " and st2.year = " + end
+                    + " AND c1.country_name = c2.country_name AND c1.country_name = '" + country
+                    + "' AND st1.state_name = '" + state + "' AND st2.state_name = '" + state + "';";
+            System.out.println(query);
+            ResultSet results = statement.executeQuery(query);
+            percentage = results.getDouble("Percent");
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return percentage;
     }
 }
 // TODO: Add your required methods here
